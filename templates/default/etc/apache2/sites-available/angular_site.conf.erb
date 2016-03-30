@@ -1,0 +1,41 @@
+
+<VirtualHost *:<%= @listen_port %>>
+
+  ServerAdmin victor@wasya.co
+  
+  KeepAlive On
+  ProxyVia On
+  ProxyPreserveHost On
+
+  <proxy>
+    Order deny,allow
+    Allow from all
+    Require all granted
+  </proxy>
+
+  DocumentRoot <%= @document_root %>
+
+  <Directory <%= @document_root %> >
+    Options Indexes FollowSymLinks MultiViews Includes ExecCGI
+    AllowOverride All
+    Order deny,allow
+    Allow from all
+    Require all granted
+
+    ## rewrite for angular
+    RewriteEngine on
+    # Don't rewrite files or directories
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+    # Rewrite everything else to index.html to allow html5 state links
+    RewriteRule ^ index.html [L]
+  </Directory>
+
+  #
+  # not used
+  #
+  # ProxyPass /api/ http://<%= @cloud_ip -%>:<%= @cloud_port -%>/ connectiontimeout=15 timeout=45
+  # ProxyPassReverse /api/ http://<%= @cloud_ip -%>:<%= @cloud_port -%>/
+
+</VirtualHost>

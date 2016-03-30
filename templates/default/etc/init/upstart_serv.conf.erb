@@ -1,0 +1,13 @@
+
+
+description "<%= @app_name %> Golang App"
+
+start on runlevel [2345]
+respawn
+respawn limit 5 30
+
+pre-start script
+  test -e <%= @app_root %> || { stop; exit 0; }
+end script
+
+exec sudo sh -c "cd <%= @app_root %>; ./<%= @executable_name %>"

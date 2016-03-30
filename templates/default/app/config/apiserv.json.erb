@@ -1,0 +1,41 @@
+{
+    "domain": "<%= @domain %>",
+    "DB": {
+        "USER": {
+            "ADDRESS": "<%= @db_user['host'] %>:3306",
+            "USER": "<%= @db_user['username'] %>",
+            "PASSWORD": "<%= @db_user['password'] %>",
+            "NAME": "<%= @db_user['database'] %>"
+        },
+        "UNIVERSITY": {
+            "ADDRESS": "<%= @db_university['host'] %>:3306",
+            "USER": "<%= @db_university['username'] %>",
+            "PASSWORD": "<%= @db_university['password'] %>",
+            "NAME": "<%= @db_university['database'] %>"
+        }
+    },
+    "AWS": {
+        "ID": "<%= @s3['key'] %>",
+        "SECRET": "<%= @s3['secret'] %>",
+        "ZONE": "<%= @s3['region'] %>",
+        "BUCKETS": {
+            "USER_VIDEOS": "<%= @s3['buckets']['user_videos'] %>",
+            "USER_IMAGES": "<%= @s3['buckets']['user_images'] %>",
+            "RECORDS": "<%= @s3['buckets']['records'] %>",
+            "IMAGES": "<%= @s3['buckets']['images'] %>"
+        }
+    },
+    "MAIL": {
+        "USERNAME": "<%= @mailer['username'] %>",
+        "PASSWORD": "<%= @mailer['password'] %>",
+        "HOST": "<%= @mailer['host'] %>"
+    },
+    "FB": {
+        "ID": "<%= @fb['app_id'] %>",
+        "SECRET": "<%= @fb['app_secret'] %>",
+        "PERMISSIONS": [
+            "public_profile",
+            "email"
+        ]
+    }
+}
