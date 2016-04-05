@@ -28,9 +28,9 @@ search(:apps).each do |any_app|
           package pkg
         end
 
-        # execute "unlock staticserv file" do
-        #   command "service #{upstart_script_name} stop ; sleep 3 ; pkill staticserv ; echo ok"
-        # end
+        execute "unlock apiserv file" do
+          command "service #{upstart_script_name} stop ; sleep 3 ; pkill apiserv ; echo ok"
+        end
 
         ##
         ## create all the directories
@@ -65,30 +65,20 @@ search(:apps).each do |any_app|
                       :deploy_to => projects_dir # this is only for reference of id_deploy file.
                     })
         end
-        
-        ## configure the api endpoint
-        # template "#{app['deploy_to']}/current/public/js/config.js" do
-        #   source "app/public/js/config.js.erb"
-        #   owner user
-        #   group user
-        #   mode "0664"
-        #   variables(
-        #     :endpoint => app['api_endpoint']
-        #   )
-        # end
-                
-        # service "#{app['id']}-app" do
-        #   action :reload
-        # end
 
         ## get the executable server
         execute 'get the executable server' do
           command %{AWS_ACCESS_KEY_ID=#{s3_key} AWS_SECRET_ACCESS_KEY=#{s3_secret} aws s3 cp s3://#{s3_deploy_bucket}/apiserv/latest/apiserv apiserv --region #{region}}
           cwd "#{app['deploy_to']}"
+          notifies :restart, "service[#{upstart_script_name}]", :delayed
         end
         file "#{app['deploy_to']}/apiserv" do
           mode '0755'
         end
+        # execute 'get emailTmpl.html' do
+        #   command %{AWS_ACCESS_KEY_ID=#{s3_key} AWS_SECRET_ACCESS_KEY=#{s3_secret} aws s3 cp s3://#{s3_deploy_bucket}/apiserv/latest/emailTmpl.html emailTmpl.html --region #{region}}
+        #   cwd "#{app['deploy_to']}"
+        # end
 
         ## write staticserv config
         template "#{app['deploy_to']}/config/apiserv.json" do
@@ -108,24 +98,24 @@ search(:apps).each do |any_app|
         ##
         ruby_block "write_ssl_fullchain" do
           block do
-            f = ::File.open("#{projects_dir}/config/letsencrypt/live/#{domain}/fullchain.pem", "w")
+            f = ::File.open("#{app['deploy_to']}/config/letsencrypt/live/#{domain}/fullchain.pem", "w")
             f.print(app["letsencrypt"][node.chef_environment]['fullchain'])
             f.close
           end
         end
-        file "#{projects_dir}/config/letsencrypt/live/#{domain}/fullchain.pem" do
+        file "#{app['deploy_to']}/config/letsencrypt/live/#{domain}/fullchain.pem" do
           owner user
           group user
           mode '0600'
         end
         ruby_block "write_ssl_privkey" do
           block do
-            f = ::File.open("#{projects_dir}/config/letsencrypt/live/#{domain}/privkey.pem", "w")
+            f = ::File.open("#{app['deploy_to']}/config/letsencrypt/live/#{domain}/privkey.pem", "w")
             f.print(app["letsencrypt"][node.chef_environment]['privkey'])
             f.close
           end
         end
-        file "#{projects_dir}/config/letsencrypt/live/#{domain}/privkey.pem" do
+        file "#{app['deploy_to']}/config/letsencrypt/live/#{domain}/privkey.pem" do
           owner user
           group user
           mode '0600'
@@ -135,21 +125,27 @@ search(:apps).each do |any_app|
         ## service
         ##
         template "/etc/init/#{upstart_script_name}.conf" do
-          source "etc/init/upstart_serv.conf.erb"
+          source "etc/init/upstart_apiserv.conf.erb"
           owner  "root"
           group  "root"
           mode   "0664"
           variables(
             :app_name        => app['id'],
-            :app_root        => "#{app['deploy_to']}/current",
+            :app_root        => "#{app['deploy_to']}",
             :executable_name => 'apiserv'
           )
         end
         service upstart_script_name do
           provider Chef::Provider::Service::Upstart
           supports :status => true, :restart => true
-          action [ :enable, :start ]
+          action [ :enable, :start, :restart ]
         end
+
+        ## restart service here
+        ## I'm doing this via notify. _vp_ 20160405
+        # service upstart_script_name do
+        #   action [ :restart ]
+        # end
 
       end
     end

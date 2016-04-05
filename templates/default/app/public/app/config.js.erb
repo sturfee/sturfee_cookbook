@@ -1,0 +1,10 @@
+'use strict'
+var appConfig = angular.module('app.config', ["ngResource"]);
+appConfig.constant(
+  'Config', {
+    api_endpoint: 'https://<%= @api_endpoint %>',
+    storage_endpoint: '<%= @storage_endpoint %>',
+    default_PublicationId: '<%= @publication_id %>'
+  }
+);
+

@@ -1,13 +1,10 @@
 sturfee CHANGELOG
 =================
 
-This file is used to list changes made in each version of the sturfee cookbook.
+0.2.0
+-----
+Will be TDD and restart services at the end of the run.
 
 0.1.0
 -----
-- [your_name] - Initial release of sturfee
-
-- - -
-Check the [Markdown Syntax Guide](http://daringfireball.net/projects/markdown/syntax) for help with Markdown.
-
-The [Github Flavored Markdown page](http://github.github.com/github-flavored-markdown/) describes the differences between markdown on github and standard markdown.
+It works, but is not TDD and doesn't restart services at the end of chef run.

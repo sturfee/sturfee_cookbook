@@ -1,0 +1,7 @@
+site "https://supermarket.getchef.com/api/v1"
+
+cookbook "sturfee", :path => "."
+
+# cookbook "php"
+# cookbook "ruby_rbenv",
+#   :git => "https://github.com/chef-rbenv/ruby_rbenv.git"

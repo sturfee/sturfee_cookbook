@@ -13,10 +13,15 @@ search(:apps).each do |any_app|
         puts! "sturfee::staticserv, deploying #{role}"
 
         ## config
-        user = app['user'][node.chef_environment]
-        projects_dir = "/home/#{user}/projects"
-        app['deploy_to'] = "#{projects_dir}/#{app['id']}"
+        user                = app['user'][node.chef_environment]
+        projects_dir        = "/home/#{user}/projects"
+        app['deploy_to']    = "#{projects_dir}/#{app['id']}"
         upstart_script_name = "#{app['id']}-app"
+        domain              = app['domains'][node.chef_environment][0]
+        # region              = app['s3'][node.chef_environment]['region']
+        # s3_key              = app['s3'][node.chef_environment]['key']
+        # s3_secret           = app['s3'][node.chef_environment]['secret']
+        # s3_deploy_bucket    = app['s3'][node.chef_environment]['buckets']['deploy']
         
         app['packages'].each do |pkg, version|
           package pkg
@@ -106,6 +111,50 @@ search(:apps).each do |any_app|
           })
         end
 
+        ##
+        ## write ssl pem files
+        ##
+        directory "#{app['deploy_to']}/current/config/letsencrypt/live/#{domain}" do
+          action :create
+          recursive true
+          owner user
+          group user
+        end
+        ruby_block "write_ssl_fullchain" do
+          block do
+            f = ::File.open("#{app['deploy_to']}/current/config/letsencrypt/live/#{domain}/fullchain.pem", "w")
+            f.print(app["letsencrypt"][node.chef_environment]['fullchain'])
+            f.close
+          end
+        end
+        file "#{app['deploy_to']}/current/config/letsencrypt/live/#{domain}/fullchain.pem" do
+          owner user
+          group user
+          mode '0600'
+        end
+        ruby_block "write_ssl_privkey" do
+          block do
+            f = ::File.open("#{app['deploy_to']}/current/config/letsencrypt/live/#{domain}/privkey.pem", "w")
+            f.print(app["letsencrypt"][node.chef_environment]['privkey'])
+            f.close
+          end
+        end
+        file "#{app['deploy_to']}/current/config/letsencrypt/live/#{domain}/privkey.pem" do
+          owner user
+          group user
+          mode '0600'
+        end
+
+        
+        ## write js config
+        template "#{app['deploy_to']}/current/public/app/config.js" do
+          source "app/public/app/config.js.erb"
+          variables({
+            :api_endpoint     => app['api_endpoint'][node.chef_environment],
+            :storage_endpoint => app['storage_endpoint'][node.chef_environment],
+            :publication_id   => app['publication_id'][node.chef_environment]
+          })
+        end
 
         ##
         ## service

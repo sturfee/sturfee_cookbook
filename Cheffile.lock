@@ -1,0 +1,8 @@
+PATH
+  remote: .
+  specs:
+    sturfee (0.1.0)
+
+DEPENDENCIES
+  sturfee (>= 0)
+
